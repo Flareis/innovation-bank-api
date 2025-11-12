@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        innovation: {
+          red: "hsl(var(--innovation-red))",
+          purple: "hsl(var(--innovation-purple))",
+          navy: "hsl(var(--innovation-navy))",
+          pink: "hsl(var(--innovation-pink))",
+          blue: "hsl(var(--innovation-blue))",
+          white: "hsl(var(--innovation-white))",
+          dark: "hsl(var(--innovation-dark))",
+        },
+      },
+      fontFamily: {
+        sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",
