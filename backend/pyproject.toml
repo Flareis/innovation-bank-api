@@ -3,6 +3,7 @@ name = "innovation-bank-backend"
 version = "0.1.0"
 description = "Backend for Innovation Bank using FastAPI, PostgreSQL, Docker, Clean Architecture"
 authors = ["Seu Nome <seu@email.com>"]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -13,7 +14,7 @@ psycopg2-binary = "^2.9.9"
 pydantic = "^2.7.1"
 python-dotenv = "^1.0.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 
 [build-system]
