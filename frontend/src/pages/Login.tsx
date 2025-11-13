@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -82,6 +83,8 @@ export default function Login() {
           </CardTitle>
           <CardDescription className="text-innovation-purple">
             {isSignUp ? "Crie sua conta e comece a compartilhar ideias" : "Entre e compartilhe suas ideias criativas"}
+            Login não é necessário no momento.<br />
+            Em breve, você poderá criar sua conta e acessar recursos exclusivos!
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleAuth}>
@@ -124,6 +127,10 @@ export default function Login() {
                 className="border-innovation-blue focus:ring-innovation-red"
               />
             </div>
+        <CardContent className="space-y-4 text-center">
+          <p className="text-lg text-innovation-navy">
+            Aproveite para explorar e compartilhar ideias livremente!
+          </p>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button
@@ -139,6 +146,14 @@ export default function Login() {
               className="w-full text-innovation-purple hover:text-innovation-red"
               onClick={() => setIsSignUp(!isSignUp)}
             >
+              {isSignUp ? "Já tem uma conta? Entre" : "Não tem conta? Cadastre-se"}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
+}
               {isSignUp ? "Já tem uma conta? Entre" : "Não tem conta? Cadastre-se"}
             </Button>
           </CardFooter>
