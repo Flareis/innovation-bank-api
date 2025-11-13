@@ -4,7 +4,6 @@ import { Plus, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { IdeaCard } from "@/components/IdeaCard";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { fetchIdeas, voteIdea } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,68 +12,21 @@ interface Idea {
   title: string;
   description: string;
   votes_count: number;
-  author_id: string;
-  profiles: {
-    name: string;
-  };
   author: string;
 }
 
 export default function Home() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
-  const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [votedIdeas, setVotedIdeas] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    setUserId(user.id);
-    await loadIdeas(user.id);
-  };
-
-  const loadIdeas = async (currentUserId: string) => {
   const loadIdeas = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Load ideas
-      const { data: ideasData, error: ideasError } = await supabase
-        .from("ideas")
-        .select(`
-          *,
-          profiles (
-            name
-          )
-        `)
-        .order("created_at", { ascending: false });
-
-      if (ideasError) throw ideasError;
-
-      // Load user votes
-      const { data: votesData, error: votesError } = await supabase
-        .from("votes")
-        .select("idea_id")
-        .eq("user_id", currentUserId);
-
-      if (votesError) throw votesError;
-
-      setIdeas(ideasData || []);
-      setUserVotes(new Set(votesData?.map(v => v.idea_id) || []));
-    } catch (error: any) {
       const data = await fetchIdeas();
       setIdeas(data);
       // Se quiser marcar ideias já votadas, ajuste aqui (exemplo: se backend retornar info de votos do usuário)
@@ -83,7 +35,6 @@ export default function Home() {
       setError("Erro ao carregar ideias");
       toast({
         title: "Erro ao carregar ideias",
-        description: error.message,
         description: err.message,
         variant: "destructive",
       });
@@ -94,47 +45,6 @@ export default function Home() {
 
   const handleVote = async (ideaId: string) => {
     try {
-      const hasVoted = userVotes.has(ideaId);
-
-      if (hasVoted) {
-        // Remove vote
-        const { error } = await supabase
-          .from("votes")
-          .delete()
-          .eq("idea_id", ideaId)
-          .eq("user_id", userId);
-
-        if (error) throw error;
-
-        setUserVotes(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(ideaId);
-          return newSet;
-        });
-
-        toast({
-          title: "Voto removido",
-          description: "Você removeu seu voto desta ideia.",
-        });
-      } else {
-        // Add vote
-        const { error } = await supabase
-          .from("votes")
-          .insert({ idea_id: ideaId, user_id: userId });
-
-        if (error) throw error;
-
-        setUserVotes(prev => new Set(prev).add(ideaId));
-
-        toast({
-          title: "Voto registrado!",
-          description: "Você amou essa ideia!",
-        });
-      }
-
-      // Reload ideas to update vote counts
-      await loadIdeas(userId);
-    } catch (error: any) {
       await voteIdea(ideaId);
       toast({
         title: "Voto registrado!",
@@ -145,11 +55,10 @@ export default function Home() {
     } catch (err: any) {
       toast({
         title: "Erro ao votar",
-        description: error.message,
         description: err.message,
         variant: "destructive",
       });
-    }
+    } 
   };
 
   useEffect(() => {
@@ -172,7 +81,6 @@ export default function Home() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
             <Sparkles className="text-innovation-pink animate-pulse" />
@@ -191,14 +99,11 @@ export default function Home() {
             Compartilhar minha ideia
           </Button>
         </div>
-
-        {/* Ideas Grid */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-6">
             Explore as ideias da comunidade
           </h2>
         </div>
-
         {ideas.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-white/70 text-lg">
@@ -213,10 +118,8 @@ export default function Home() {
                 id={idea.id}
                 title={idea.title}
                 description={idea.description}
-                authorName={idea.profiles.name}
                 authorName={idea.author}
                 votesCount={idea.votes_count}
-                hasVoted={userVotes.has(idea.id)}
                 hasVoted={votedIdeas.has(idea.id)}
                 onVote={handleVote}
               />
@@ -226,4 +129,5 @@ export default function Home() {
       </div>
     </Layout>
   );
+}
 }
