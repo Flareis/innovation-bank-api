@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { IdeaCard } from "@/components/IdeaCard";
+import { WordCloud } from "@/components/WordCloud";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -163,6 +164,16 @@ export default function Home() {
             Compartilhar minha ideia
           </Button>
         </div>
+
+        {/* Word Cloud */}
+        {ideas.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-white mb-6">
+              Temas mais frequentes
+            </h2>
+            <WordCloud ideas={ideas} />
+          </div>
+        )}
 
         {/* Ideas Grid */}
         <div className="mb-8">
