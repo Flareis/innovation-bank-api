@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout";
 import { IdeaCard } from "@/components/IdeaCard";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchIdeas, voteIdea } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 
 interface Idea {
@@ -16,6 +17,7 @@ interface Idea {
   profiles: {
     name: string;
   };
+  author: string;
 }
 
 export default function Home() {
@@ -23,6 +25,8 @@ export default function Home() {
   const [userVotes, setUserVotes] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [votedIdeas, setVotedIdeas] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,6 +47,9 @@ export default function Home() {
   };
 
   const loadIdeas = async (currentUserId: string) => {
+  const loadIdeas = async () => {
+    setLoading(true);
+    setError(null);
     try {
       // Load ideas
       const { data: ideasData, error: ideasError } = await supabase
@@ -68,9 +75,16 @@ export default function Home() {
       setIdeas(ideasData || []);
       setUserVotes(new Set(votesData?.map(v => v.idea_id) || []));
     } catch (error: any) {
+      const data = await fetchIdeas();
+      setIdeas(data);
+      // Se quiser marcar ideias já votadas, ajuste aqui (exemplo: se backend retornar info de votos do usuário)
+      // setVotedIdeas(new Set(data.filter(idea => idea.hasVoted).map(idea => idea.id)));
+    } catch (err: any) {
+      setError("Erro ao carregar ideias");
       toast({
         title: "Erro ao carregar ideias",
         description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     } finally {
@@ -121,13 +135,27 @@ export default function Home() {
       // Reload ideas to update vote counts
       await loadIdeas(userId);
     } catch (error: any) {
+      await voteIdea(ideaId);
+      toast({
+        title: "Voto registrado!",
+        description: "Você votou nesta ideia!",
+      });
+      await loadIdeas();
+      setVotedIdeas(prev => new Set(prev).add(ideaId));
+    } catch (err: any) {
       toast({
         title: "Erro ao votar",
         description: error.message,
+        description: err.message,
         variant: "destructive",
       });
     }
   };
+
+  useEffect(() => {
+    loadIdeas();
+    // eslint-disable-next-line
+  }, []);
 
   if (loading) {
     return (
@@ -186,8 +214,10 @@ export default function Home() {
                 title={idea.title}
                 description={idea.description}
                 authorName={idea.profiles.name}
+                authorName={idea.author}
                 votesCount={idea.votes_count}
                 hasVoted={userVotes.has(idea.id)}
+                hasVoted={votedIdeas.has(idea.id)}
                 onVote={handleVote}
               />
             ))}

@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchIdea, voteIdea } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -19,6 +20,7 @@ interface IdeaDetail {
   profiles: {
     name: string;
   };
+  author: string;
 }
 
 export default function IdeaDetail() {
@@ -27,14 +29,20 @@ export default function IdeaDetail() {
   const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
+  const [voteLoading, setVoteLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadIdea();
+    // eslint-disable-next-line
   }, [id]);
 
   const loadIdea = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -71,7 +79,12 @@ export default function IdeaDetail() {
 
       setIdea(ideaData);
       setHasVoted(!!voteData);
+      if (!id) return;
+      const data = await fetchIdea(id);
+      setIdea(data);
+        setHasVoted(false);
     } catch (error: any) {
+      setError("Erro ao carregar ideia");
       toast({
         title: "Erro ao carregar ideia",
         description: error.message,
@@ -86,6 +99,7 @@ export default function IdeaDetail() {
   const handleVote = async () => {
     if (!idea) return;
 
+    setVoteLoading(true);
     try {
       if (hasVoted) {
         // Remove vote
@@ -118,13 +132,21 @@ export default function IdeaDetail() {
       }
 
       // Reload idea to update vote count
+      await voteIdea(idea.id);
+      toast({
+        title: "Amei essa ideia!",
+        description: "Seu voto foi registrado com sucesso.",
+      });
       await loadIdea();
+      setHasVoted(true);
     } catch (error: any) {
       toast({
         title: "Erro ao votar",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setVoteLoading(false);
     }
   };
 
@@ -143,13 +165,18 @@ export default function IdeaDetail() {
   if (!idea) {
     return (
       <Layout>
+  return (
+    <Layout>
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <p className="text-white text-xl">Ideia não encontrada</p>
             <Button
               onClick={() => navigate("/")}
+        <Button
+          onClick={() => navigate("/")}
               className="mt-4 bg-innovation-red hover:bg-innovation-red/90"
             >
+        >
               Voltar para início
             </Button>
           </div>
@@ -157,6 +184,12 @@ export default function IdeaDetail() {
       </Layout>
     );
   }
+        </Button>
+            </div>
+              </div>
+    </Layout>
+  );
+}
 
   return (
     <Layout>
@@ -180,6 +213,53 @@ export default function IdeaDetail() {
                 onClick={handleVote}
                 size="lg"
                 variant={hasVoted ? "default" : "outline"}
+                className={
+                  hasVoted
+                    ? "bg-innovation-red hover:bg-innovation-red/90 text-white font-semibold"
+                    : "border-innovation-red text-innovation-red hover:bg-innovation-red hover:text-white font-semibold"
+                }
+                disabled={voteLoading}
+              >
+                <Heart className={`mr-2 h-5 w-5 ${hasVoted ? "fill-current" : ""}`} />
+                {hasVoted ? "Amei!" : "Amar essa ideia"}
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-4 text-innovation-purple/70">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span className="font-medium">{idea.profiles.name}</span>
+                <span className="font-medium">{idea.author}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {format(new Date(idea.created_at), "dd 'de' MMMM 'de' yyyy", {
+                    locale: ptBR,
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                <span className="font-semibold">
+                  {idea.votes_count} {idea.votes_count === 1 ? "voto" : "votos"}
+                </span>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <div className="prose prose-lg max-w-none">
+              <p className="text-foreground whitespace-pre-wrap text-lg leading-relaxed">
+                {idea.description}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </Layout>
+  );
+}
                 className={
                   hasVoted
                     ? "bg-innovation-red hover:bg-innovation-red/90 text-white font-semibold"
