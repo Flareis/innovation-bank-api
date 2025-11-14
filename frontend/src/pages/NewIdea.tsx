@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { createIdea } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 
 export default function NewIdea() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [author, setAuthor] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -20,30 +21,12 @@ export default function NewIdea() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
-      const { error } = await supabase
-        .from("ideas")
-        .insert({
-          title,
-          description,
-          author_id: user.id,
-        });
-
-      if (error) throw error;
-
+      await createIdea({ title, description, author });
       toast({
         title: "Ideia cadastrada!",
         description: "Sua ideia foi compartilhada com sucesso.",
       });
-
       navigate("/");
     } catch (error: any) {
       toast({
@@ -67,7 +50,6 @@ export default function NewIdea() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar
         </Button>
-
         <Card className="bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
@@ -96,7 +78,6 @@ export default function NewIdea() {
                   className="border-innovation-blue focus:ring-innovation-red text-lg"
                 />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-lg font-semibold text-innovation-navy">
                   Descrição
@@ -114,7 +95,20 @@ export default function NewIdea() {
                   Quanto mais detalhes, melhor! Conte sua história.
                 </p>
               </div>
-
+              <div className="space-y-2">
+                <Label htmlFor="author" className="text-lg font-semibold text-innovation-navy">
+                  Seu nome
+                </Label>
+                <Input
+                  id="author"
+                  type="text"
+                  placeholder="Digite seu nome"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  required
+                  className="border-innovation-blue focus:ring-innovation-red text-lg"
+                />
+              </div>
               <Button
                 type="submit"
                 className="w-full bg-innovation-red hover:bg-innovation-red/90 text-white font-semibold text-lg py-6"

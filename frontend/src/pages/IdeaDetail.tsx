@@ -4,7 +4,7 @@ import { ArrowLeft, Heart, User, Calendar } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchIdea, voteIdea } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -15,63 +15,34 @@ interface IdeaDetail {
   description: string;
   votes_count: number;
   created_at: string;
-  author_id: string;
-  profiles: {
-    name: string;
-  };
+  author: string;
 }
 
 export default function IdeaDetail() {
   const { id } = useParams<{ id: string }>();
   const [idea, setIdea] = useState<IdeaDetail | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string>("");
+  const [voteLoading, setVoteLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false); // Simples, pois não há autenticação
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadIdea();
+    // eslint-disable-next-line
   }, [id]);
 
   const loadIdea = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
-      setUserId(user.id);
-
-      // Load idea
-      const { data: ideaData, error: ideaError } = await supabase
-        .from("ideas")
-        .select(`
-          *,
-          profiles (
-            name
-          )
-        `)
-        .eq("id", id)
-        .single();
-
-      if (ideaError) throw ideaError;
-
-      // Check if user has voted
-      const { data: voteData, error: voteError } = await supabase
-        .from("votes")
-        .select("id")
-        .eq("idea_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (voteError && voteError.code !== 'PGRST116') throw voteError;
-
-      setIdea(ideaData);
-      setHasVoted(!!voteData);
+      if (!id) return;
+      const data = await fetchIdea(id);
+      setIdea(data);
+      setHasVoted(false); // Não há autenticação, então sempre começa como não votado
     } catch (error: any) {
+      setError("Erro ao carregar ideia");
       toast({
         title: "Erro ao carregar ideia",
         description: error.message,
@@ -85,46 +56,23 @@ export default function IdeaDetail() {
 
   const handleVote = async () => {
     if (!idea) return;
-
+    setVoteLoading(true);
     try {
-      if (hasVoted) {
-        // Remove vote
-        const { error } = await supabase
-          .from("votes")
-          .delete()
-          .eq("idea_id", idea.id)
-          .eq("user_id", userId);
-
-        if (error) throw error;
-
-        setHasVoted(false);
-        toast({
-          title: "Voto removido",
-          description: "Você removeu seu voto desta ideia.",
-        });
-      } else {
-        // Add vote
-        const { error } = await supabase
-          .from("votes")
-          .insert({ idea_id: idea.id, user_id: userId });
-
-        if (error) throw error;
-
-        setHasVoted(true);
-        toast({
-          title: "Amei essa ideia!",
-          description: "Seu voto foi registrado com sucesso.",
-        });
-      }
-
-      // Reload idea to update vote count
+      await voteIdea(idea.id);
+      toast({
+        title: "Amei essa ideia!",
+        description: "Seu voto foi registrado com sucesso.",
+      });
       await loadIdea();
+      setHasVoted(true);
     } catch (error: any) {
       toast({
         title: "Erro ao votar",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setVoteLoading(false);
     }
   };
 
@@ -169,7 +117,6 @@ export default function IdeaDetail() {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar
         </Button>
-
         <Card className="bg-white/95 backdrop-blur-sm">
           <CardHeader className="space-y-4">
             <div className="flex items-start justify-between gap-4">
@@ -185,16 +132,16 @@ export default function IdeaDetail() {
                     ? "bg-innovation-red hover:bg-innovation-red/90 text-white font-semibold"
                     : "border-innovation-red text-innovation-red hover:bg-innovation-red hover:text-white font-semibold"
                 }
+                disabled={voteLoading}
               >
                 <Heart className={`mr-2 h-5 w-5 ${hasVoted ? "fill-current" : ""}`} />
                 {hasVoted ? "Amei!" : "Amar essa ideia"}
               </Button>
             </div>
-
             <div className="flex flex-wrap gap-4 text-innovation-purple/70">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                <span className="font-medium">{idea.profiles.name}</span>
+                <span className="font-medium">{idea.author}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -212,7 +159,6 @@ export default function IdeaDetail() {
               </div>
             </div>
           </CardHeader>
-
           <CardContent>
             <div className="prose prose-lg max-w-none">
               <p className="text-foreground whitespace-pre-wrap text-lg leading-relaxed">
