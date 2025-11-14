@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas.idea import IdeaCreate, IdeaOut
 from app.db.models import Idea
-from uuid import UUID
 
 router = APIRouter()
 
@@ -23,7 +22,7 @@ def create_idea(idea: IdeaCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{id}", response_model=IdeaOut)
-def get_idea(id: UUID, db: Session = Depends(get_db)):
+def get_idea(id: int, db: Session = Depends(get_db)):
     idea = db.query(Idea).filter(Idea.id == id).first()
     if not idea:
         raise HTTPException(status_code=404, detail="Idea not found")
@@ -31,7 +30,7 @@ def get_idea(id: UUID, db: Session = Depends(get_db)):
 
 
 @router.patch("/{id}/vote", response_model=IdeaOut)
-def vote_idea(id: UUID, db: Session = Depends(get_db)):
+def vote_idea(id: int, db: Session = Depends(get_db)):
     idea = db.query(Idea).filter(Idea.id == id).first()
     if not idea:
         raise HTTPException(status_code=404, detail="Idea not found")
@@ -41,7 +40,7 @@ def vote_idea(id: UUID, db: Session = Depends(get_db)):
     return idea
 
 @router.delete("/{id}", response_model=IdeaOut)
-def delete_idea(id: UUID, db: Session = Depends(get_db)):
+def delete_idea(id: int, db: Session = Depends(get_db)):
     idea = db.query(Idea).filter(Idea.id == id).first()
     if not idea:
         raise HTTPException(status_code=404, detail="Idea not found")
