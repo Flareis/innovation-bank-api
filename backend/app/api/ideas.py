@@ -39,3 +39,12 @@ def vote_idea(id: UUID, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(idea)
     return idea
+
+@router.delete("/{id}", response_model=IdeaOut)
+def delete_idea(id: UUID, db: Session = Depends(get_db)):
+    idea = db.query(Idea).filter(Idea.id == id).first()
+    if not idea:
+        raise HTTPException(status_code=404, detail="Idea not found")
+    db.delete(idea)
+    db.commit()
+    return idea

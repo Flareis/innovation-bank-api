@@ -23,3 +23,7 @@ class IdeaService:
     def vote_idea(self, idea_id):
         logger.info(f"Voting for idea: {idea_id}")
         return self.repo.increment_votes(idea_id)
+    
+    def delete_idea(self, idea_id):
+        logger.info(f"Deleting idea: {idea_id}")
+        return self.repo.delete(idea_id)
