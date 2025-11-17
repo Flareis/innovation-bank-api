@@ -1,12 +1,13 @@
 from pydantic import BaseModel
-from uuid import UUID
+
 
 class VoteCreate(BaseModel):
-    idea_id: UUID
+    idea_id: int
+
 
 class VoteOut(BaseModel):
-    id: UUID
-    idea_id: UUID
+    id: int
+    idea_id: int
 
     class Config:
         orm_mode = True

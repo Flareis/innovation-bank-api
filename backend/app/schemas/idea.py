@@ -7,7 +7,7 @@ class IdeaCreate(BaseModel):
     author: str
 
 class IdeaOut(BaseModel):
-    id: UUID
+    id: int
     title: str
     description: str
     author: str

@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { IdeaCard } from "@/components/IdeaCard";
-import { WordCloud } from "@/components/WordCloud";
 import { Button } from "@/components/ui/button";
 import { fetchIdeas, voteIdea } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { STOPWORDS_PT } from "@/utils/stopwords-pt";
+import WordCloud from "react-d3-cloud";
 
 interface Idea {
   id: string;
@@ -23,6 +24,20 @@ export default function Home() {
   const [votedIdeas, setVotedIdeas] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [wordData, setWordData] = useState<{text: string, value: number}[]>([]);
+
+  // Função para processar as ideias e gerar a nuvem de palavras
+  const processWordCloud = (ideas: Idea[]) => {
+    const text = ideas.map(i => `${i.title} ${i.description}`).join(" ").toLowerCase();
+    const words = text
+      .replace(/[.,;:!?()[\]{}"']/g, " ")
+      .split(/\s+/)
+      .filter(w => w.length > 2 && !STOPWORDS_PT.includes(w));
+    const freq: Record<string, number> = {};
+    words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    const data = Object.entries(freq).map(([text, value]) => ({ text, value }));
+    setWordData(data);
+  };
 
   const loadIdeas = async () => {
     setLoading(true);
@@ -30,6 +45,7 @@ export default function Home() {
     try {
       const data = await fetchIdeas();
       setIdeas(data);
+      processWordCloud(data);
       // Se quiser marcar ideias já votadas, ajuste aqui (exemplo: se backend retornar info de votos do usuário)
       // setVotedIdeas(new Set(data.filter(idea => idea.hasVoted).map(idea => idea.id)));
     } catch (err: any) {
@@ -62,6 +78,8 @@ export default function Home() {
     } 
   };
 
+  
+
   useEffect(() => {
     loadIdeas();
     // eslint-disable-next-line
@@ -82,6 +100,7 @@ export default function Home() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
+        {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
             <Sparkles className="text-innovation-pink animate-pulse" />
@@ -100,21 +119,53 @@ export default function Home() {
             Compartilhar minha ideia
           </Button>
         </div>
-<<<<<<< HEAD:src/pages/Home.tsx
 
-        {/* Word Cloud */}
-        {ideas.length > 0 && (
+        {/* Word Cloud Section */}
+        {wordData.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-3xl font-bold text-white mb-6">
-              Temas mais frequentes
+            <h2 className="text-3xl font-bold text-white mb-6 text-center">
+              Temas mais frequentes nas ideias
             </h2>
-            <WordCloud ideas={ideas} />
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg p-8 mx-auto max-w-4xl">
+              <WordCloud
+                data={wordData}
+                width={500}
+                height={200}
+                font="Nunito, Arial, sans-serif"  // Fonte mais arredondada
+                fontSize={(word) => {
+                  const maxFreq = Math.max(...wordData.map(w => w.value));
+                  const minSize = 14;
+                  const maxSize = 48;
+                  return minSize + ((word.value / maxFreq) * (maxSize - minSize));
+                }}
+                spiral="archimedean"
+                padding={4}
+                rotate={() => 0}  // Sem rotação para melhor legibilidade
+                random={() => 0.5}  // Centralização mais consistente
+                fill={(d, i) => {
+                  // Cores mais suaves e harmoniosas
+                  const colors = [
+                    '#e11d48', // Rosa vibrante
+                    '#7c3aed', // Roxo
+                    '#0ea5e9', // Azul
+                    '#059669', // Verde
+                    '#dc2626', // Vermelho
+                    '#9333ea', // Violeta
+                    '#0891b2', // Ciano
+                    '#ca8a04'  // Amarelo escuro
+                  ];
+                  return colors[i % colors.length];
+                }}
+                fontWeight={(word) => {
+                  const maxFreq = Math.max(...wordData.map(w => w.value));
+                  return word.value === maxFreq ? 'bold' : 'normal';
+                }}
+              />
+            </div>
           </div>
         )}
 
-        {/* Ideas Grid */}
-=======
->>>>>>> feat/backend-integration:frontend/src/pages/Home.tsx
+        {/* Ideas Grid*/}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-6">
             Explore as ideias da comunidade

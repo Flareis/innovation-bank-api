@@ -24,3 +24,10 @@ class IdeaRepository:
             self.db.commit()
             self.db.refresh(idea)
         return idea
+    
+    def delete(self, idea_id):
+        idea = self.get_by_id(idea_id)
+        if idea:
+            self.db.delete(idea)
+            self.db.commit()
+        return idea
