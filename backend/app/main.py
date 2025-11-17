@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import ideas
+from app.api import ideas, auth
 
 app = FastAPI(title="Innovation Bank API")
 
@@ -14,3 +14,4 @@ app.add_middleware(
 )
 
 app.include_router(ideas.router, prefix="/ideas", tags=["ideas"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"]) 
