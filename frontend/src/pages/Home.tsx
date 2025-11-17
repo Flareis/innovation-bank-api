@@ -126,18 +126,39 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-white mb-6 text-center">
               Temas mais frequentes nas ideias
             </h2>
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 mx-auto max-w-4xl">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg p-8 mx-auto max-w-4xl">
               <WordCloud
                 data={wordData}
-                width={800}
-                height={400}
-                font="Arial"
-                fontSize={(word) => Math.max(12, Math.min(40, 12 + word.value * 3))}
+                width={500}
+                height={200}
+                font="Nunito, Arial, sans-serif"  // Fonte mais arredondada
+                fontSize={(word) => {
+                  const maxFreq = Math.max(...wordData.map(w => w.value));
+                  const minSize = 14;
+                  const maxSize = 48;
+                  return minSize + ((word.value / maxFreq) * (maxSize - minSize));
+                }}
                 spiral="archimedean"
-                padding={2}
+                padding={4}
+                rotate={() => 0}  // Sem rotação para melhor legibilidade
+                random={() => 0.5}  // Centralização mais consistente
                 fill={(d, i) => {
-                  const colors = ['#e11d48', '#7c3aed', '#0ea5e9', '#059669', '#dc2626', '#9333ea'];
+                  // Cores mais suaves e harmoniosas
+                  const colors = [
+                    '#e11d48', // Rosa vibrante
+                    '#7c3aed', // Roxo
+                    '#0ea5e9', // Azul
+                    '#059669', // Verde
+                    '#dc2626', // Vermelho
+                    '#9333ea', // Violeta
+                    '#0891b2', // Ciano
+                    '#ca8a04'  // Amarelo escuro
+                  ];
                   return colors[i % colors.length];
+                }}
+                fontWeight={(word) => {
+                  const maxFreq = Math.max(...wordData.map(w => w.value));
+                  return word.value === maxFreq ? 'bold' : 'normal';
                 }}
               />
             </div>
