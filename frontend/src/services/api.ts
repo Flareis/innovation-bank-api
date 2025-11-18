@@ -2,7 +2,7 @@ const API_URL = "http://localhost:8000";
 
 // Tipos para autenticação
 export interface LoginData {
-  username: string; // FastAPI OAuth2 usa 'username' mesmo sendo email
+  email: string;
   password: string;
 }
 
@@ -17,6 +17,7 @@ export interface User {
   email: string;
   name: string;
   is_active: boolean;
+  created_at: string;
 }
 
 export interface AuthResponse {
@@ -25,14 +26,18 @@ export interface AuthResponse {
 }
 
 // Funções de autenticação
-export async function login(data: LoginData): Promise<AuthResponse> {
-  const formData = new FormData();
-  formData.append('username', data.username);
-  formData.append('password', data.password);
+export async function login(data: LoginData): Promise<User> {
+  const body = {
+    email: data.email,
+    password: data.password,
+  };
+
+  console.log("Login data being sent:", body);
 
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    body: formData,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error("Failed to login");
   return res.json();
@@ -64,6 +69,18 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem('access_token');
   return token ? { "Authorization": `Bearer ${token}` } : {};
 };
+
+export async function fetchIdeas() {
+  const res = await fetch(`${API_URL}/ideas`);
+  if (!res.ok) throw new Error("Failed to fetch ideas");
+  return res.json();
+}
+
+export async function fetchIdea(id: string) {
+  const res = await fetch(`${API_URL}/ideas/${id}`);
+  if (!res.ok) throw new Error("Failed to fetch idea");
+  return res.json();
+}
 
 export async function createIdea(data: { title: string; description: string; author: string }) {
   const res = await fetch(`${API_URL}/ideas`, {
