@@ -1,73 +1,97 @@
-# Welcome to your Lovable project
+# Innovation Bank Frontend
 
-## Project info
+Frontend em React + TypeScript com Vite, shadcn-ui e Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/56c9e973-7703-4c3c-8b35-a42be0eabda4
+## Requisitos
 
-## How can I edit this code?
+- Node.js 20+ (recomendado usar [nvm](https://github.com/nvm-sh/nvm))
+- npm ou bun
 
-There are several ways of editing your application.
+## Como rodar localmente
 
-**Use Lovable**
+### Com Docker Compose
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/56c9e973-7703-4c3c-8b35-a42be0eabda4) and start prompting.
+Na raiz do projeto:
 
-Changes made via Lovable will be committed automatically to this repo.
+```bash
+docker compose up
+```
 
-**Use your preferred IDE**
+O frontend estará disponível em [http://localhost:3000](http://localhost:3000).
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Sem Docker (Desenvolvimento Local)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Navegue até a pasta do frontend:
 
-Follow these steps:
+```bash
+cd frontend
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Instale as dependências:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Inicie o servidor de desenvolvimento:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O app abrirá em [http://localhost:5173](http://localhost:5173).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Funcionalidades
 
-**Use GitHub Codespaces**
+- 🔐 Autenticação com email/senha
+- 💡 Gerenciamento de ideias
+- 🗳️ Sistema de votação
+- ☁️ Word Cloud das ideias mais votadas
+- 📱 Responsivo e moderno
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Scripts Disponíveis
 
-## What technologies are used for this project?
+- `npm run dev` - Inicia servidor de desenvolvimento
+- `npm run build` - Cria build para produção
+- `npm run preview` - Visualiza build local
+- `npm run lint` - Valida código com ESLint
 
-This project is built with:
+## Estrutura do Projeto
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```
+src/
+├── components/       # Componentes reutilizáveis
+├── contexts/        # React Context (autenticação)
+├── hooks/           # Custom hooks
+├── pages/           # Páginas da aplicação
+├── services/        # Integração com API
+├── utils/           # Funções utilitárias
+└── App.tsx          # Componente raiz
+```
 
-## How can I deploy this project?
+## Variáveis de Ambiente
 
-Simply open [Lovable](https://lovable.dev/projects/56c9e973-7703-4c3c-8b35-a42be0eabda4) and click on Share -> Publish.
+Crie um arquivo `.env` se necessário:
 
-## Can I connect a custom domain to my Lovable project?
+```env
+VITE_API_URL=http://localhost:8000
+```
 
-Yes, you can!
+## Tecnologias
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+- **Vite** - Build tool rápido
+- **React 18** - Framework UI
+- **TypeScript** - Tipagem estática
+- **React Router** - Roteamento
+- **shadcn-ui** - Componentes UI
+- **Tailwind CSS** - Estilização
+- **React Query** - Gerenciamento de estado assíncrono
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Deploy
+
+Para fazer deploy em produção:
+
+```bash
+npm run build
+# Servir a pasta 'dist' com um servidor web
+```
