@@ -95,3 +95,8 @@ Para fazer deploy em produção:
 npm run build
 # Servir a pasta 'dist' com um servidor web
 ```
+## Melhorias
+
+1. Adicionar tratamento para erros específicos (401, 403, 500)
+2. Salvar token e vrificar expiração
+3. Usar cache para informação repetitivas
