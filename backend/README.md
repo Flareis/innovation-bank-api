@@ -63,3 +63,12 @@ backend/
 - `GET /ideas` - Listar ideias
 - `POST /ideas` - Criar nova ideia
 - `PATCH /ideas/{id}/vote` - Votar em uma ideia
+
+  ## Melhorias
+
+1. Gerar JWT token
+2. Vincular votos ao usuário
+3. Usuário só tem permissão para votar uma vez em cada ideia
+4. Inserir validações para email e senha
+5. Melhorar mensagens de erros específicos
+6. Usar cache para informação repetitivas
